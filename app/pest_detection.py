@@ -1,31 +1,26 @@
-import gspread
-import joblib
 import os
-import numpy as np
 import json
+import joblib
+import gspread
+import numpy as np
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 class PestDetectionSystem:
     def __init__(self):
-    self.model = joblib.load('models/pest_detection_model_2.pkl')
-    self.scope = [
-        'https://spreadsheets.google.com/feeds',
-        'https://www.googleapis.com/auth/drive'
-    ]
-    
-    # Load Google credentials
-    google_creds = json.loads(os.getenv('GOOGLE_CREDS'))
-    self.creds = ServiceAccountCredentials.from_json_keyfile_dict(
-        google_creds, 
-        self.scope
-    )
-    
-    # Initialize sheet connection
-    self.client = gspread.authorize(self.creds)
-    self._init_sheet()
+        self.model = joblib.load('models/pest_detection_model_2.pkl')
+        self.scope = [
+            'https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive'
+        ]
+        google_creds = json.loads(os.getenv('GOOGLE_CREDS'))
+        self.creds = ServiceAccountCredentials.from_json_keyfile_dict(
+            google_creds,
+            self.scope
+        )
+        self.client = gspread.authorize(self.creds)
+        self._init_sheet()
 
-    
     def _init_sheet(self):
         self.sheet = self.client.open_by_key(os.getenv('SHEET_ID')).sheet1
         headers = ['timestamp'] + os.getenv("SENSORS").split(',') + ['prediction', 'processed_at']
@@ -43,10 +38,9 @@ class PestDetectionSystem:
                 try:
                     features = np.array([float(record[s]) for s in os.getenv("SENSORS").split(',')]).reshape(1, -1)
                     prediction = self.model.predict(features)[0]
-                    
-                    self.sheet.update_cell(idx+2, len(record)+1, 
+                    self.sheet.update_cell(idx+2, len(record)+1,
                         'Pest Detected' if prediction == 1 else 'No Pest')
-                    self.sheet.update_cell(idx+2, len(record)+2, 
+                    self.sheet.update_cell(idx+2, len(record)+2,
                         datetime.now().isoformat())
                 except Exception as e:
                     self.sheet.update_cell(idx+2, len(record)+2, f'Error: {str(e)}')
