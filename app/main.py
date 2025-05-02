@@ -8,7 +8,6 @@ import os
 app = FastAPI(title="Pest Detection API")
 system = PestDetectionSystem()
 
-# Scheduled job (every 5 minutes)
 def detection_job():
     system.process_new_entries()
 
@@ -21,19 +20,13 @@ def startup_event():
 @app.post("/detect")
 async def detect_pest(data: dict):
     try:
-        # Validate input sensors
         required_sensors = os.getenv("SENSORS").split(',')
         for sensor in required_sensors:
             if sensor not in data:
                 raise ValueError(f"Missing {sensor} data")
-        
-        # Prepare row data with timestamp
         row_data = [datetime.now().isoformat()] + [str(data[sensor]) for sensor in required_sensors]
-        
-        # Append to sheet and process
         system.append_to_sheet(row_data)
         system.process_new_entries()
-        
         return JSONResponse({
             "status": "success",
             "sensors_used": required_sensors,
