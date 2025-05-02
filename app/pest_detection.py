@@ -2,6 +2,7 @@ import gspread
 import joblib
 import os
 import numpy as np
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
@@ -10,8 +11,8 @@ class PestDetectionSystem:
         self.model = joblib.load('models/pest_detection_model_2.pkl')
         self.scope = ['https://spreadsheets.google.com/feeds',
                      'https://www.googleapis.com/auth/drive']
-        self.creds = ServiceAccountCredentials.from_json_keyfile_dict(
-            eval(os.getenv('GOOGLE_CREDS')), self.scope)
+       self.creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    json.loads(os.getenv('GOOGLE_CREDS')), self.scope)
         self.client = gspread.authorize(self.creds)
         self._init_sheet()
     
