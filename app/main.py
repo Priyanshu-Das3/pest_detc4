@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pest_detection import PestDetectionSystem
+from .pest_detection import PestDetectionSystem
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import os
